@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mysoft.b2b.bizsupport.mapper.DomainMapper">
+	
+	<resultMap type="com.mysoft.b2b.bizsupport.api.Domain" id="domainResult">
+		<id property="uid" column="domain_id" />
+		<result property="companyId" column="company_id" />
+		<result property="prefix" column="prefix" />
+		<result property="domain" column="domain" />
+		<result property="status" column="status" />
+		<result property="type" column="type" />
+		<result property="origin" column="origin" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	
+	<!-- 查询域名对象列表 -->
+	<select id="getDomainList"  resultMap="domainResult" parameterType="com.mysoft.b2b.bizsupport.api.DomainVO">
+		SELECT
+			bsp_domain.domain_id,
+			bsp_domain.company_id,
+			bsp_domain.prefix,
+			bsp_domain.domain,
+			bsp_domain.`status`,
+			bsp_domain.type,
+			bsp_domain.origin,
+			bsp_domain.remark
+		FROM
+			bsp_domain
+		<where>
+			<if test="prefix != null">
+				prefix like #{prefix}
+			</if>
+			<if test="domain !=null">
+				and domain = #{domain}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="type !=null">
+				and type = #{type}
+			</if>
+			<if test="origin !=null">
+				and origin = #{origin}
+			</if>
+			<if test="remark !=null">
+				and remark like #{remark}
+			</if>
+			<if test="companyId !=null">
+				and company_id = #{companyId}
+			</if>
+			<if test="uid !=null">
+				and domain_id = #{uid}
+			</if>
+		</where>
+		<if test="offset !=null and pageSize !=null">
+			limit #{offset}, #{pageSize}
+		</if>
+	</select>
+
+	<!-- 查询所有域名对象数量 -->
+	<select id="getDomainCount"  resultType="Long" parameterType="com.mysoft.b2b.bizsupport.api.DomainVO">
+		SELECT	Count(*)
+		FROM 
+			bsp_domain
+		<where>
+			<if test="prefix != null">
+				prefix like #{prefix}
+			</if>
+			<if test="domain !=null">
+				and domain = #{domain}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="type !=null">
+				and type = #{type}
+			</if>
+			<if test="origin !=null">
+				and origin = #{origin}
+			</if>
+			<if test="remark !=null">
+				and remark like #{remark}
+			</if>
+			<if test="companyId !=null">
+				and company_id = #{companyId}
+			</if>
+			<if test="uid !=null">
+				and domain_id = #{uid}
+			</if>
+		</where>
+	</select>
+
+	<!-- 保存域名对象 -->
+	<insert id="saveDomain" parameterType="com.mysoft.b2b.bizsupport.api.Domain">
+		insert into bsp_domain
+		(
+		  domain_id,
+		  company_id,
+		  prefix,
+		  domain,
+		  status,
+		  type,
+		  origin,
+		  remark
+		)
+		values(
+			#{uid},
+			#{companyId},
+			#{prefix},
+			#{domain},
+			#{status},
+			#{type},
+			#{origin},
+			#{remark}
+		)
+	</insert>
+	
+	<!-- 更新域名信息 -->
+	<update id="updateDomain" parameterType="com.mysoft.b2b.bizsupport.api.Domain">
+		update bsp_domain
+		<set>
+			<if test="prefix != null">
+				prefix = #{prefix},
+			</if>
+			<if test="domain !=null">
+				domain = #{domain},
+			</if>
+			<if test="status !=null">
+				status = #{status},
+			</if>
+			<if test="type !=null">
+				type = #{type},
+			</if>
+			<if test="origin !=null">
+				origin = #{origin},
+			</if>
+			<if test="remark !=null">
+				remark = #{remark}
+			</if>
+		</set>
+		where domain_id= #{uid}
+	</update>
+	
+	<!-- 删除域名 -->
+	<delete id="deleteDomain" parameterType="com.mysoft.b2b.bizsupport.api.Domain">
+	 delete 
+	 from bsp_domain
+	 where	
+	 	prefix = #{prefix}
+	</delete>
+	
+	
+	<!-- 查询域名信息 -->
+	<select id="getDomain"
+		parameterType="com.mysoft.b2b.bizsupport.api.Domain" resultMap="domainResult">
+		SELECT
+			bsp_domain.domain_id,
+			bsp_domain.company_id,
+			bsp_domain.prefix,
+			bsp_domain.domain,
+			bsp_domain.`status`,
+			bsp_domain.type,
+			bsp_domain.origin,
+			bsp_domain.remark
+		FROM
+		bsp_domain
+		<where>
+			<if test="prefix != null">
+				prefix like #{prefix}
+			</if>
+			<if test="domain !=null">
+				and domain = #{domain}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="type !=null">
+				and type = #{type}
+			</if>
+			<if test="origin !=null">
+				and origin = #{origin}
+			</if>
+			<if test="remark !=null">
+				and remark = #{remark}
+			</if>
+			<if test="companyId !=null">
+				and company_id = #{companyId}
+			</if>
+			<if test="uid !=null">
+				and domain_id = #{uid}
+			</if>
+		</where>
+	</select>
+</mapper>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mysoft.b2b.bizsupport.mapper.BasicCategoryMapper">
+	<resultMap id="basicCategoryResult" type="BasicCategoryDO">
+		<id property="categoryId" column="category_id" />
+		<result property="basicCategory.categoryShortname" column="category_shortname" />
+		<result property="basicCategory.categoryName" column="category_name" />
+		<result property="basicCategory.categoryCode" column="category_code" />
+		<result property="basicCategory.parentCode" column="parent_code" />
+		<result property="isLeaf" column="is_leaf" />
+		<result property="hierarchyLevel" column="hierarchy_level" />
+		<result property="basicCategory.displayOrder" column="display_order" />
+		<result property="creationTime" column="creation_time" />
+		<result property="lastModifiedTime" column="last_modified_time" />
+		<result property="basicCategory.categoryStatus" column="category_status" />
+		<result property="operator" column="operator" />
+	</resultMap>
+
+	<select id="getBasicCategoryList" resultMap="basicCategoryResult">
+		SELECT category_id,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_basic_forest order by parent_code, display_order;
+	</select>
+	
+	<select id="getChildrenBasicCategoryList" parameterType="String" resultMap="basicCategoryResult">
+		SELECT category_id,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_basic_forest where parent_code = #{categoryCode} order by parent_code, display_order;
+	</select>
+	
+	<select id="getChildrenCount" parameterType="String" resultType="int">
+		SELECT count(*) FROM bsp_basic_forest where parent_code = #{categoryCode};
+    </select>
+	
+	<select id="getBasicCategoryByCode" parameterType="String" resultMap="basicCategoryResult">
+		SELECT category_id,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_basic_forest where category_code = #{categoryCode} order by parent_code, display_order;
+	</select>
+	
+	<!-- 新增基础分类对象 -->
+	<insert id="saveBasicCategory" parameterType="BasicCategoryDO" keyProperty="basicCategory.categoryCode">
+		insert into
+		bsp_basic_forest
+		(category_id,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		category_status,
+		operator,
+		display_order
+		) values
+		(#{categoryId},
+		#{basicCategory.categoryShortname},
+		#{basicCategory.categoryName},
+		#{basicCategory.categoryCode},
+		#{basicCategory.parentCode},
+		#{creationTime},
+		#{lastModifiedTime},
+		#{basicCategory.categoryStatus},
+		#{operator},
+		#{basicCategory.displayOrder})
+	</insert>
+	
+	<!-- 修改基础分类对象  
+			category_shortname = #{basicCategory.categoryShortname},-->
+	<update id="updateBasicCategory" parameterType="BasicCategoryDO">
+		UPDATE bsp_basic_forest SET
+			parent_code = #{basicCategory.parentCode},
+			category_name = #{basicCategory.categoryName},
+			display_order = #{basicCategory.displayOrder},
+			last_modified_time = #{lastModifiedTime},
+			operator = #{operator}
+			WHERE category_code = #{basicCategory.categoryCode, jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 更新基础分类状态  -->	
+ 	<update id="updateBasicCategoryStatus" parameterType="java.util.HashMap" >
+		update 
+			bsp_basic_forest 
+		set 
+			last_modified_time = #{lastModifiedTime, jdbcType=TIMESTAMP},
+			category_status = #{categoryStatus, jdbcType=TINYINT}
+		where 
+			category_code in 
+			<foreach collection="categoryCodes" item="categoryCode" index="index" open="(" separator=", " close=")">
+				#{categoryCode, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+	
+	<delete id="deleteForestRelationship" parameterType="String" >
+		delete from bsp_forest_relationship 
+		where basic_forest_code = #{categoryCode, jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="saveForestRelationship" parameterType="java.util.HashMap" >
+		insert into
+		bsp_forest_relationship
+		(relationship_id,
+		basic_forest_code,
+		standard_forest_code
+		) values
+		(#{relationshipId},
+		#{basicForestCode},
+		#{standardForestCode})
+	</update>
+ 	
+ 	<!-- 
+ 	<update id="updateBasicCategoryStatus" parameterType="java.util.ArrayList" >
+  		<foreach collection="list" item="item" index="index">
+   			UPDATE bsp_basic_forest SET
+   			category_status = #{item.categoryStatus} 
+   			WHERE category_code = #{item.categoryCode};
+  		</foreach>
+ 	</update>
+	
+ 		 -->
+
+</mapper>

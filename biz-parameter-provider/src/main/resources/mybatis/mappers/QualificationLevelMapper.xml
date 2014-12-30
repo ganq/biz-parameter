@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mysoft.b2b.bizsupport.mapper.QualificationLevelMapper">
+	<resultMap type="com.mysoft.b2b.bizsupport.api.QualificationLevel" id="qlResult">
+		<id property="id" column="id" />
+		<result property="levelCode" column="level_code" />
+		<result property="levelName" column="level_name" />
+		<result property="priority" column="priority" />
+		<result property="status" column="status" />
+		<result property="createTime" column="create_time"/>
+		<result property="qualificationCode" column="qualification_code"/>
+		<!--
+		 <association property="qualification" column="qualification_code">
+			<id />
+			<result />
+		</association>
+		 -->
+	</resultMap>
+	
+	<!-- 查询所有资质等级列表 -->
+	<select id="getQualificationLevels"  resultMap="qlResult" parameterType="java.util.Map">
+		SELECT
+			bsp_qualification_level.id,
+			bsp_qualification_level.level_code,
+			bsp_qualification_level.level_name,
+			bsp_qualification_level.priority,
+			bsp_qualification_level.`status`,
+			bsp_qualification_level.qualification_code,
+			bsp_qualification_level.create_time
+		FROM
+			bsp_qualification_level
+		<where>
+			<if test="qualificationCode !=null">
+				qualification_code = #{qualificationCode}
+			</if>
+			<if test="levelName !=null">
+				and level_name like #{levelName}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="priority !=null">
+				and priority &lt;= #{priority}
+			</if>
+			<if test="id !=null">
+				and id = #{id}
+			</if>
+		</where>
+		ORDER BY
+			bsp_qualification_level.create_time DESC
+		<if test="startIndex !=null and pageSize !=null">
+			limit #{startIndex}, #{pageSize}
+		</if>
+	</select>
+
+	<!-- 查询所有等级数目 -->
+	<select id="getQualificationLevelsCount"  resultType="Integer" parameterType="java.util.HashMap">
+		SELECT Count(*)
+		FROM
+			bsp_qualification_level
+		<where>
+			<if test="qualificationCode !=null">
+				qualification_code = #{qualificationCode}
+			</if>
+			<if test="levelName !=null">
+				and level_name like #{levelName}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="priority !=null">
+				and priority &lt;= #{priority}
+			</if>
+			<if test="id !=null">
+				and id = #{id}
+			</if>
+		</where>
+	</select>
+
+	<!-- 根据资质码查询所有资质等级对象 -->
+	<select id="getLevelsIncludeUnusedByQCode" parameterType="String" resultMap="qlResult">
+		SELECT *
+		FROM
+			bsp_qualification_level
+		WHERE
+		   qualification_code = #{code}
+		ORDER BY
+			status DESC, priority ASC
+	</select>
+
+	<!-- 根据资质码查询启用的资质等级列表 -->
+	<select id="getLevelsByQualificationCode" parameterType="String" resultMap="qlResult">
+		SELECT *
+		FROM
+			bsp_qualification_level
+		WHERE
+		   qualification_code = #{code} and  status = true 
+		ORDER BY
+			priority ASC
+	</select>
+
+	<!-- 根据资质码查询资质等级数量 -->
+	<select id="getLevelsByQualificationCodeCount" parameterType="String" resultMap="qlResult">
+		SELECT Count(*)
+		FROM
+			bsp_qualification_level
+		WHERE
+		    qualification_code = #{code} and  status = true
+	</select>
+
+	<!-- 根据资质等级码查询资质等级对象-->
+	<select id="getQualificationLevelByCode" parameterType="String" resultMap="qlResult">
+		SELECT *
+		FROM
+			bsp_qualification_level
+		WHERE
+			level_code = #{code}
+	</select>
+	
+	<!-- 根据资质等级id查询资质等级对象-->
+	<select id="getQualificationLevelById" parameterType="String" resultMap="qlResult">
+		SELECT *
+		FROM
+			bsp_qualification_level
+		WHERE
+			id = #{id}
+	</select>
+	
+	<!-- 新增资质等级对象-->
+	<insert id="addQualificationLevel" parameterType="com.mysoft.b2b.bizsupport.api.QualificationLevel">
+		insert into bsp_qualification_level
+		(
+			id,
+			level_code,
+			level_name,
+			priority,
+			qualification_code
+		)
+		values(#{id}, #{levelCode}, #{levelName} , #{priority},#{qualificationCode})
+	</insert>
+	
+	<!-- 修改资质等级信息 -->
+	<update id="updateQualificationLevel" parameterType="com.mysoft.b2b.bizsupport.api.QualificationLevel">  
+	  update bsp_qualification_level
+	  <set>
+	  	<if test="priority !=null">
+	  		priority = #{priority},
+	  	</if>
+	  	<if test="status !=null">
+	  		status = #{status}
+	  	</if>
+	  </set>
+	  where level_code = #{levelCode}
+	</update>
+</mapper>

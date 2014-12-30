@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mysoft.b2b.bizsupport.mapper.StandardCategoryMapper">
+	<resultMap id="standardCategoryResult" type="StandardCategoryDO">
+		<id property="categoryId" column="category_id" />
+		<result property="standardCategory.categoryShortname" column="category_shortname" />
+		<result property="standardCategory.categoryName" column="category_name" />
+		<result property="standardCategory.categoryUiCode" column="category_ui_code" />
+		<result property="standardCategory.categoryCode" column="category_code" />
+		<result property="standardCategory.parentCode" column="parent_code" />
+		<result property="isLeaf" column="is_leaf" />
+		<result property="hierarchyLevel" column="hierarchy_level" />
+		<result property="standardCategory.displayOrder" column="display_order" />
+		<result property="creationTime" column="creation_time" />
+		<result property="lastModifiedTime" column="last_modified_time" />
+		<result property="standardCategory.categoryStatus" column="category_status" />
+		<result property="operator" column="operator" />
+	</resultMap>
+	
+	<resultMap id="standardCategoryVOResult" type="com.mysoft.b2b.bizsupport.vo.StandardCategoryVO">
+		<result property="categoryName" column="category_name" />
+		<result property="categoryUiCode" column="category_ui_code" />
+		<result property="categoryCode" column="category_code" />
+		<result property="parentCode" column="parent_code" />
+		<!-- 
+		<result property="categoryShortname" column="category_shortname" />
+		<result property="isLeaf" column="is_leaf" />
+		<result property="hierarchyLevel" column="hierarchy_level" />
+		<result property="displayOrder" column="display_order" />
+		<result property="creationTime" column="creation_time" />
+		<result property="lastModifiedTime" column="last_modified_time" />
+		<result property="standardCategory.categoryStatus" column="category_status" />
+		<result property="operator" column="operator" /> -->
+	</resultMap>
+
+	<select id="getStandardCategoryList" resultMap="standardCategoryResult">
+		SELECT
+		category_id,
+		category_ui_code,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_standard_forest order by parent_code, display_order;
+	</select>
+
+	<select id="getChildrenStandardCategoryList" parameterType="String" resultMap="standardCategoryResult">
+		SELECT 
+		category_id,
+		category_ui_code,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_standard_forest where parent_code = #{categoryCode} order by parent_code, display_order;
+	</select>
+	
+	<select id="getStandardCategoryByCategoryUiCode" parameterType="String" resultMap="standardCategoryResult">
+		select category_ui_code,
+		category_code,
+		parent_code
+		FROM bsp_standard_forest where category_ui_code = #{categoryUiCode} order by parent_code, display_order;
+	</select>
+	
+	<select id="getChildrenCount" parameterType="String" resultType="int">
+		SELECT count(*) FROM bsp_standard_forest where parent_code = #{categoryCode};
+    </select>
+	
+	<select id="getStandardCategoryByCode" parameterType="String" resultMap="standardCategoryResult">
+		SELECT
+		category_id,
+		category_ui_code,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		is_leaf,
+		hierarchy_level,
+		category_status,
+		operator,
+		display_order
+		FROM bsp_standard_forest where category_code = #{categoryCode} order by parent_code, display_order;
+	</select>
+	
+	<!-- 新增行业标准分类对象 -->
+	<insert id="saveStandardCategory" parameterType="StandardCategoryDO" keyProperty="standardCategory.categoryCode">
+		insert into
+		bsp_standard_forest
+		(category_id,
+		category_ui_code,
+		category_shortname,
+		category_name,
+		category_code,
+		parent_code,
+		creation_time,
+		last_modified_time,
+		category_status,
+		operator,
+		display_order
+		) values
+		(#{categoryId},
+		#{standardCategory.categoryUiCode},
+		#{standardCategory.categoryShortname},
+		#{standardCategory.categoryName},
+		#{standardCategory.categoryCode},
+		#{standardCategory.parentCode},
+		#{creationTime},
+		#{lastModifiedTime},
+		#{standardCategory.categoryStatus},
+		#{operator},
+		#{standardCategory.displayOrder})
+	</insert>
+	
+	<!-- 修改行业标准分类对象 -->
+	<update id="updateStandardCategory" parameterType="StandardCategoryDO">
+		UPDATE bsp_standard_forest SET
+			parent_code = #{standardCategory.parentCode},
+			category_ui_code = #{standardCategory.categoryUiCode},
+			category_shortname = #{standardCategory.categoryShortname},
+			category_name = #{standardCategory.categoryName},
+			display_order = #{standardCategory.displayOrder},
+			last_modified_time = #{lastModifiedTime},
+			operator = #{operator}
+			WHERE category_code = #{standardCategory.categoryCode, jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 更新行业标准分类状态  -->	
+ 	<update id="updateStandardCategoryStatus" parameterType="java.util.HashMap" >
+		update 
+			bsp_standard_forest 
+		set 
+			last_modified_time = #{lastModifiedTime, jdbcType=TIMESTAMP},
+			category_status = #{categoryStatus, jdbcType=TINYINT}
+		where 
+			category_code in 
+			<foreach collection="categoryCodes" item="categoryCode" index="index" open="(" separator=", " close=")">
+				#{categoryCode, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+			
+	<select id="getForestRelationshipByCode" parameterType="String" resultMap="standardCategoryVOResult">
+		select 
+		    category_ui_code, category_code, category_name, parent_code
+		FROM
+		    bsp_standard_forest
+		where
+		    category_code in (select 
+		            standard_forest_code
+		        from
+		            bsp_forest_relationship
+		        where
+		            basic_forest_code = #{categoryCode})
+		order by category_ui_code , display_order;
+	</select>
+</mapper>
+
+

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mysoft.b2b.bizsupport.mapper.QualificationMapper">
+	
+	<resultMap type="com.mysoft.b2b.bizsupport.api.Qualification" id="qResult">
+		<id property="id" column="id" />
+		<result property="qualificationCode" column="qualification_code" />
+		<result property="qualificationName" column="qualification_name" />
+		<result property="status" column="status" />
+		<result property="isRelationBasic" column="is_relation_basic" />
+		<result property="createTime" column="create_time" />
+		<result property="updateTime" column="update_time" />
+	</resultMap>
+	
+	<resultMap type="com.mysoft.b2b.bizsupport.api.QualificationBasicRelation" id="qbrResult">
+		<id property="id" column="id" />
+		<result property="qualificationCode" column="qualification_code" />
+		<result property="categoryCode" column="category_code" />
+	</resultMap>
+	
+	<resultMap type="com.mysoft.b2b.bizsupport.api.BasicCategoryQulificationVO" id="qbrResult2">
+		<result property="categoryCode" column="category_code"/>
+		<result property="categoryName" column="category_name"/>
+		<collection property="qualifications"
+			ofType="com.mysoft.b2b.bizsupport.api.Qualification" resultMap="qResult">
+		</collection>
+	</resultMap>
+	
+	<!-- 查询资质信息列表 -->
+	<select id="getQualifications"  resultMap="qResult" parameterType="java.util.Map">
+		SELECT
+			bsp_qualification.id,
+			bsp_qualification.qualification_code,
+			bsp_qualification.qualification_name,
+			bsp_qualification.`status`,
+			bsp_qualification.is_relation_basic,
+			bsp_qualification.create_time,
+			bsp_qualification.update_time
+		FROM 
+			bsp_qualification
+		<where>
+			<if test="id !=null">
+				id = #{id}
+			</if>
+			<if test="status !=null">
+				and status = #{status}
+			</if>
+			<if test="qualificationName !=null">
+				and qualification_name like #{qualificationName}
+			</if>
+			<if test="qualificationCode !=null">
+				and qualification_code = #{qualificationCode}
+			</if>
+			<if test="isRelationBasic !=null">
+				and is_relation_basic = #{isRelationBasic}
+			</if> 
+		</where>
+		ORDER BY status DESC ,qualification_name ASC
+			 <if test="startIndex !=null and pageSize !=null">
+				limit #{startIndex}, #{pageSize}
+			</if>
+	</select>
+
+	<!-- 查询所有资质数量 -->
+	<select id="getQualificationsCount"  resultType="Integer" parameterType="java.util.HashMap">
+		SELECT	Count(*)
+		FROM 
+			bsp_qualification
+		<where>
+			<if test="status !=null">
+				status =#{status}
+			</if>
+			<if test="qualificationName !=null">
+				and qualification_name = #{qualificationName}
+			</if>
+			<if test="qualificationCode !=null">
+				and qualification_code like #{qualificationCode}
+			</if>
+			<if test="id !=null">
+				and id = #{id}
+			</if>
+			<if test="isRelationBasic !=null">
+				and is_relation_basic = #{isRelationBasic}
+			</if>
+		</where>
+	</select>
+
+	<!-- 根据资质码查询资质-->
+	<select id="getQualificationByCode" parameterType="String" resultMap="qResult">
+		SELECT
+			bsp_qualification.id,
+			bsp_qualification.qualification_code,
+			bsp_qualification.qualification_name,
+			bsp_qualification.`status`,
+			bsp_qualification.is_relation_basic,
+			bsp_qualification.create_time,
+			bsp_qualification.update_time
+		FROM 
+			bsp_qualification
+		WHERE
+			 bsp_qualification.qualification_code = #{code}
+	</select>
+	
+	<!-- 根据资质id查询资质-->
+	<select id="getQualificationById" parameterType="String" resultMap="qResult">
+		SELECT
+			bsp_qualification.id,
+			bsp_qualification.qualification_code,
+			bsp_qualification.qualification_name,
+			bsp_qualification.`status`,
+			bsp_qualification.is_relation_basic,
+			bsp_qualification.create_time,
+			bsp_qualification.update_time
+		FROM 
+			bsp_qualification
+		WHERE
+			 id = #{id}
+	</select>
+	
+	<!-- 根据基础分类服务码查询资质列表 -->
+	<select id="getQualificationsByCategoryCode" parameterType="String" resultMap="qResult">
+		SELECT o1.*
+			FROM bsp_qualification o1, bsp_qualification_basic o2
+		WHERE
+			 o1.qualification_code = o2.qualification_code 
+			 and o2.category_code = #{code}
+			 and o1.status = true
+		ORDER BY
+			 o1.status DESC, o1.qualification_name ASC 
+	</select>
+
+	<!-- 根据基础分类资质码查询资质数量 -->
+	<select id="getQualificationsByCategoryCodeCount" parameterType="String" resultType="Integer">
+		SELECT Count(*)
+			FROM bsp_qualification o1, bsp_qualification_basic o2
+		WHERE
+			 o1.qualification_code = o2.qualification_code 
+			 and o2.category_code = #{code}
+			 and o1.status = true
+	</select>
+	
+	<!-- 新增资质 -->
+	<insert id="addQualification" parameterType="com.mysoft.b2b.bizsupport.api.Qualification">
+		insert into bsp_qualification
+		(
+			id,
+			qualification_code,
+			qualification_name
+		)
+		values(#{id}, #{qualificationCode}, #{qualificationName})
+	</insert>
+	
+	<!-- 更新资质 -->
+	<update id="updateQualification" parameterType="com.mysoft.b2b.bizsupport.api.Qualification">
+		update bsp_qualification
+		<set>
+			<if test="qualificationName != null">
+				qualification_name =#{qualificationName},
+			</if>
+			<if test="status !=null">
+				status=#{status},
+			</if>
+			<if test="isRelationBasic !=null">
+				is_relation_basic=#{isRelationBasic},
+			</if>
+			<if test="updateTime !=null">
+				update_time=#{updateTime}
+			</if>
+		</set>
+		where id= #{id}
+	</update>
+	
+	<!-- 批量新增资质基础分类服务关联记录 -->
+	<insert id="addQualificationBasicRelationBatch" parameterType="java.util.List">  
+	 insert into bsp_qualification_basic
+		(
+			id,
+			qualification_code,
+			category_code
+		)
+		values  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.id}, #{item.qualificationCode},  #{item.categoryCode})
+	    </foreach>
+	</insert>
+	
+	<!-- 新增资质基础分类服务关联记录 -->
+	<insert id="addQualificationBasicRelation" parameterType="com.mysoft.b2b.bizsupport.api.QualificationBasicRelation">  
+	 insert into bsp_qualification_basic
+		(
+			id,
+			qualification_code,
+			category_code
+		)
+		values  
+	    	(#{id}, #{qualificationCode}, #{categoryCode})
+	</insert>
+	
+	<!-- 根据id删除资质与基础服务关联记录 -->
+	<delete id="deleteQualificationBasicRelationById" parameterType="String">
+		delete from
+			bsp_qualification_basic
+		where id = #{id}
+	</delete>
+	
+	<!-- 根据资质码删除资质与基础分类的关联记录 -->
+	<delete id="deleteQualificationBasicRelationByQCode" parameterType="String">
+		delete from
+			bsp_qualification_basic
+		where qualification_code = #{qualificationCode}
+	</delete>
+	
+	<!-- 根据基础分类码删除资质与基础分类的关联记录 -->
+	<delete id="deleteQualificationBasicRelationByCategoryCode" parameterType="String">
+		delete	from
+			bsp_qualification_basic
+		where category_code = #{categoryCode}
+	</delete>
+	
+	<!-- 根据资质码查询资质与基础服务的关联记录 -->
+	<select id="getQualificationBasicRelationByQCode"
+		parameterType="String" resultMap="qbrResult">
+		SELECT 
+			bsp_qualification_basic.id,
+			bsp_qualification_basic.qualification_code,
+			bsp_qualification_basic.category_code
+	    FROM
+			bsp_qualification_basic
+	    Where 
+	   		qualification_code = #{categoryCode}
+	</select>
+	
+	<!--  -->
+	<select id="getQualificationsByCategoryCodes" parameterType="java.util.List" 
+		resultMap="qbrResult2">
+		SELECT o1.*, o3.category_code, o3.category_name
+			FROM bsp_qualification o1, bsp_qualification_basic o2, bsp_basic_forest o3
+		WHERE
+			 o1.qualification_code = o2.qualification_code 
+			 and o3.category_code = o2.category_code
+			 and o1.status = true
+			 and o2.category_code
+			 in (
+			 <foreach collection="list" item="item" index="index" separator="," >  
+	       		#{item}
+	 	     </foreach>
+	 	     )
+	</select>
+</mapper>
